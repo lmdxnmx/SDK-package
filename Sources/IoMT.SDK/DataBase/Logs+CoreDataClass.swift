@@ -10,5 +10,7 @@ import Foundation
 import CoreData
 
 public class Logs: NSManagedObject {
-
+    public override var description: String {
+         return "Logs"
+     }
 }
