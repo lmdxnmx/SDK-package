@@ -8,7 +8,7 @@
 
 import Foundation
 import CoreData
-
+@objc(Entity)
 public class Entity: NSManagedObject {
     public override var description: String {
          return "Entity"
