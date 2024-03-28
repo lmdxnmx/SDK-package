@@ -10,7 +10,7 @@ class CoreDataStack {
     // Ленивая инициализация persistentContainer
     lazy var persistentContainer: PersistentContainer = {
         // Создание NSPersistentContainer с именем вашей модели данных
-        guard let modelURL = Bundle.main.url(forResource: "Observation-2", withExtension: "momd") else {
+        guard let modelURL = Bundle.module.url(forResource: "Observation-2", withExtension: "momd") else {
             fatalError("Модель данных не найдена")
         }
         guard let model = NSManagedObjectModel(contentsOf: modelURL) else {
