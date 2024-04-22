@@ -12,15 +12,19 @@ let package = Package(
             targets: ["IoMT.SDK"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/ashleymills/Reachability.swift.git", from: "5.0.0")
+        .package(url: "https://github.com/ashleymills/Reachability.swift.git", from: "5.0.0"),
     ],
     targets: [
         .target(
             name: "IoMT.SDK",
-            dependencies: [.product(name: "Reachability", package: "Reachability.swift")],
+            dependencies: [.product(name: "Reachability", package: "Reachability.swift"),"lame"],
             resources: [
                            .process("Resources")
                        ]
         ),
+        .binaryTarget(
+                  name: "lame",
+                  path: "Frameworks/lame.xcframework"
+              )
     ]
 )
