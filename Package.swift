@@ -9,7 +9,7 @@ let package = Package(
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "IoMT.SDK",
-            targets: ["IoMT.SDK"]),
+            targets: ["IoMT.SDK","lame"]),
     ],
     dependencies: [
         .package(url: "https://github.com/ashleymills/Reachability.swift.git", from: "5.0.0"),
