@@ -46,7 +46,7 @@ fileprivate class _baseCallback: DeviceCallback {
         if(!debug){
             baseAddress = "https://ppma.ru"
         }
-        else{ baseAddress = "https://dev.ppma.ru" }
+        else{ baseAddress = "https://test.ppma.ru" }
         self.urlGateWay = URL(string: (self.baseAddress))!
         self.callback = callback
         self.sdkVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
@@ -138,7 +138,10 @@ fileprivate class _baseCallback: DeviceCallback {
              }
          }
 
-    
+     func getDocumentsDirectory() -> URL {
+         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+         return paths[0]
+     }
     func isCoreDataNotEmpty() -> Bool {
         let backgroundContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
         backgroundContext.persistentStoreCoordinator = CoreDataStack.shared.persistentContainer.persistentStoreCoordinator
@@ -204,6 +207,7 @@ fileprivate class _baseCallback: DeviceCallback {
                         let newTask = Entity(context: context)
                         newTask.title = identifier
                         newTask.body = jsonString
+                        newTask.deviceType = "EltaGlucometer"
                         do {
                             try context.save()
                         } catch {
@@ -211,8 +215,6 @@ fileprivate class _baseCallback: DeviceCallback {
                         }}}catch{
                             DeviceService.getInstance().ls.addLogs(text:"Ошибка сохранения: \(error.localizedDescription)")
                     }
-           
-                return
             }
             if let httpResponse = response as? HTTPURLResponse {
                 let statusCode = httpResponse.statusCode
@@ -240,6 +242,7 @@ fileprivate class _baseCallback: DeviceCallback {
                             let newTask = Entity(context: context)
                             newTask.title = identifier
                             newTask.body = jsonString
+                            newTask.deviceType = "EltaGlucometer"
                             do {
                                 try context.save()
                             } catch {
@@ -259,11 +262,11 @@ fileprivate class _baseCallback: DeviceCallback {
         }
         task.resume()
     }
-       internal func postResource(data: Data) {
-        let timeUrl  = URL(string: (self.baseAddress + "/gateway/iiot/api/Observation/data"))!
+     internal func postResource(data: Data, id:UUID) {
+         self.dispatchGroup.enter()
+        let timeUrl  = URL(string: (self.baseAddress + ":/fetal/iiot/api/Observation/data"))!
         print(timeUrl)
         var urlRequest: URLRequest = URLRequest(url: timeUrl)
-        var identifier = UUID();
         urlRequest.httpMethod = "POST"
         urlRequest.addValue("Basic " + self.auth, forHTTPHeaderField: "Authorization")
         urlRequest.addValue("I2024-03-20T10:12:22Z", forHTTPHeaderField: "SDK-VERSION")
@@ -276,20 +279,21 @@ fileprivate class _baseCallback: DeviceCallback {
         let session = URLSession.shared
         let task = session.dataTask(with: urlRequest) { (data, response, error) in
             if let error = error {
-                self.callback.onExpection(mac: identifier, ex: error)
+                self.callback.onExpection(mac: id, ex: error)
                 
                 DeviceService.getInstance().ls.addLogs(text:"Error: \(error)")
                 let context = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
                 context.persistentStoreCoordinator = CoreDataStack.shared.persistentContainer.persistentStoreCoordinator
                 let fetchRequest: NSFetchRequest<Entity> = Entity.fetchRequest()
-                fetchRequest.predicate = NSPredicate(format: "title == %@", identifier as CVarArg)
+                fetchRequest.predicate = NSPredicate(format: "title == %@", id as CVarArg)
                 do{
                     let existingEntities = try context.fetch(fetchRequest)
                     if existingEntities.isEmpty {
                         // Нет существующих объектов с таким же идентификатором, поэтому добавляем новый объект
                         let newTask = Entity(context: context)
-                        newTask.title = identifier
+                        newTask.title = id
                         newTask.body = jsonString
+                        newTask.deviceType = "DoctisFetal"
                         do {
                             try context.save()
                         } catch {
@@ -297,20 +301,48 @@ fileprivate class _baseCallback: DeviceCallback {
                         }}}catch{
                         DeviceService.getInstance().ls.addLogs(text:"Ошибка сохранения: \(error.localizedDescription)")
                     }
-     
-                return
             }
             if let httpResponse = response as? HTTPURLResponse {
                 let statusCode = httpResponse.statusCode
-                if(statusCode <= 202){
-                    self.callback.onSendData(mac: identifier, status: PlatformStatus.Success)
-                }
+                print(statusCode)
+                if(statusCode <= 202 || statusCode == 401 || statusCode == 403 || statusCode == 400 || statusCode == 207){
+                    if(statusCode <= 202 || statusCode == 207){
+                        self.postFile(id: id)
+                    }
+                    let backgroundQueue = DispatchQueue.global(qos: .background)
+                    backgroundQueue.async {
+                        let backgroundContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+                        backgroundContext.persistentStoreCoordinator = CoreDataStack.shared.persistentContainer.persistentStoreCoordinator
+
+                        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Entity")
+                        fetchRequest.returnsObjectsAsFaults = false
+                        fetchRequest.predicate = NSPredicate(format: "deviceType == %@", "DoctisFetal" as CVarArg)
+                        fetchRequest.predicate = NSPredicate(format: "title == %@", id as CVarArg)
+                        do {
+                            let results = try backgroundContext.fetch(fetchRequest)
+                            for object in results {
+                                guard let objectData = object as? NSManagedObject else { continue }
+                                guard objectData.managedObjectContext == backgroundContext else { continue }
+                                backgroundContext.delete(objectData)
+                            }
+                            try backgroundContext.save()
+
+                            self.stopTimer()
+                            self.interval = 1
+                        } catch let error {
+                            print("Delete all data error :", error)
+                        }
+                    }
+                       
+                       // Вызов колбэка
+                       self.callback.onSendData(mac: id, status: PlatformStatus.Success)
+                   }
                 else{
                     if(statusCode != 400 && statusCode != 401  && statusCode != 403){
                         let context = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
                         context.persistentStoreCoordinator = CoreDataStack.shared.persistentContainer.persistentStoreCoordinator
                         let fetchRequest: NSFetchRequest<Entity> = Entity.fetchRequest()
-                        fetchRequest.predicate = NSPredicate(format: "title == %@", identifier as CVarArg)
+                        fetchRequest.predicate = NSPredicate(format: "title == %@", id as CVarArg)
                         do{
                         let existingEntities = try context.fetch(fetchRequest)
                         for entity in existingEntities {
@@ -320,8 +352,9 @@ fileprivate class _baseCallback: DeviceCallback {
                         if existingEntities.isEmpty {
                             // Нет существующих объектов с таким же идентификатором, поэтому добавляем новый объект
                             let newTask = Entity(context: context)
-                            newTask.title = identifier
+                            newTask.title = id
                             newTask.body = jsonString
+                            newTask.deviceType = "DoctisFetal"
                             do {
                                 try context.save()
                             } catch {
@@ -330,7 +363,7 @@ fileprivate class _baseCallback: DeviceCallback {
                                 DeviceService.getInstance().ls.addLogs(text:"Ошибка сохранения: \(error.localizedDescription)")
                             }
                 }
-                    self.callback.onSendData(mac: identifier, status: PlatformStatus.Failed)
+                    self.callback.onSendData(mac: id, status: PlatformStatus.Failed)
                 }
             }
             if let responseData = data {
@@ -338,11 +371,80 @@ fileprivate class _baseCallback: DeviceCallback {
                     DeviceService.getInstance().ls.addLogs(text:"Response: \(responseString)")
                 }
             }
+            self.dispatchGroup.leave()
         }
         task.resume()
-        
     }
-    
+     internal func postFile(id: UUID) {
+         let timeUrl = URL(string: (self.baseAddress + "/fetal/iiot/api/Observation/audio"))!
+         let documentsDirectory = getDocumentsDirectory()
+         let filePath = documentsDirectory.appendingPathComponent(id.uuidString).appendingPathExtension("mp3")
+         let fileUrl = URL(fileURLWithPath: filePath.path)
+             var urlRequest = URLRequest(url: timeUrl)
+             urlRequest.httpMethod = "POST"
+             urlRequest.addValue("Basic " + self.auth, forHTTPHeaderField: "Authorization")
+             urlRequest.addValue("I2024-03-20T10:12:22Z", forHTTPHeaderField: "SDK-VERSION")
+             urlRequest.addValue("Id " + self.instanceId.uuidString, forHTTPHeaderField: "InstanceID")
+             let boundary = "Boundary-\(UUID().uuidString)"
+             urlRequest.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+             var body = Data()
+             let idString = "\(id.uuidString)\r\n"
+             if let idData = idString.data(using: .utf8) {
+                 body.append(contentsOf: "--\(boundary)\r\n".data(using: .utf8)!)
+                 body.append(contentsOf: "Content-Disposition: form-data; name=\"id\"\r\n\r\n".data(using: .utf8)!)
+                 body.append(idData)
+             }
+
+                 let fileManager = FileManager.default
+                     do {
+                         // Читаем данные из файла
+                         let fileData = try Data(contentsOf: fileUrl)
+
+                         // Добавляем заголовок файла к телу запроса
+                         if let fileHeaderData = "--\(boundary)\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"\(id)\"\r\nContent-Type: audio/mp3\r\n\r\n".data(using: .utf8),
+                            let endLineData = "\r\n".data(using: .utf8) {
+                             body.append(contentsOf: fileHeaderData)
+                             body.append(fileData)
+                             body.append(contentsOf: endLineData)
+                         }
+                     } catch {
+                         print("Ошибка чтения файла: \(error)")
+                         return
+                     }
+                 
+
+             body.append(contentsOf: "--\(boundary)--\r\n".data(using: .utf8)!)
+             
+             urlRequest.httpBody = body
+             var result = urlRequest.allHTTPHeaderFields;
+             let session = URLSession.shared
+             let task = session.dataTask(with: urlRequest) { (data, response, error) in
+                 if let error = error {
+                     self.callback.onExpection(mac: id, ex: error)
+                     
+                     DeviceService.getInstance().ls.addLogs(text:"Error: \(error)")
+                 }
+                 if let httpResponse = response as? HTTPURLResponse {
+                     let statusCode = httpResponse.statusCode
+                     print(statusCode)
+                     if(statusCode <= 202 || statusCode == 207){
+                         print("File success")
+                         self.callback.onSendData(mac: id, status: PlatformStatus.Success)
+                     }
+                     else{
+                         print("File failed")
+                         self.callback.onSendData(mac: id, status: PlatformStatus.Failed)
+                     }
+                 }
+                 if let responseData = data {
+                     if let responseString = String(data: responseData, encoding: .utf8) {
+                         DeviceService.getInstance().ls.addLogs(text:"Response: \(responseString)")
+                     }
+                 }
+             }; task.resume()}
+
+
+
      internal func postResource(data: Data, bundle: Bool) {
          self.dispatchGroup.enter()
          let timeUrl = URL(string: (self.baseAddress + "/gateway/iiot/api/Observation/data"))!
@@ -366,8 +468,12 @@ fileprivate class _baseCallback: DeviceCallback {
              if let httpResponse = response as? HTTPURLResponse {
                  let statusCode = httpResponse.statusCode
                  if (statusCode <= 202 || statusCode == 400 || statusCode == 401 || statusCode == 403 || statusCode == 207) {
-                     // В этом блоке ваша логика обработки успешного запроса
-
+                     if(statusCode <= 202 || statusCode == 207){
+                         self.callback.onSendData(mac: UUID(), status: PlatformStatus.Success)
+                     }
+                     if(statusCode == 400 || statusCode == 401 || statusCode == 403){
+                         self.callback.onSendData(mac: UUID(), status: PlatformStatus.Failed)
+                     }
                      let backgroundQueue = DispatchQueue.global(qos: .background)
                      backgroundQueue.async {
                          let backgroundContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
@@ -375,6 +481,7 @@ fileprivate class _baseCallback: DeviceCallback {
 
                          let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Entity")
                          fetchRequest.returnsObjectsAsFaults = false
+                         fetchRequest.predicate = NSPredicate(format: "deviceType == %@", "EltaGlucometer" as CVarArg)
                          do {
                              let results = try backgroundContext.fetch(fetchRequest)
                              for object in results {
@@ -480,15 +587,25 @@ fileprivate class _baseCallback: DeviceCallback {
                      var currentArray: [Data] = [] // Текущий массив данных
                      
                      for (index, object) in objects.enumerated() {
-                         if let body = object.body?.data(using: .utf8) {
-                             currentArray.append(body) // Добавляем данные в текущий массив
-                         } else {
-                             DeviceService.getInstance().ls.addLogs(text: "Ошибка: Не удалось преобразовать тело объекта в Data")
-                         }
-                         
-                         if currentArray.count == 35 || index == objects.count - 1 {
-                             dataArray.append(currentArray)
-                             currentArray = []
+                         if(object.deviceType == "EltaGlucometer" || object.deviceType == nil){
+                             if let body = object.body?.data(using: .utf8) {
+                                 currentArray.append(body) // Добавляем данные в текущий массив
+                             } else {
+                                 DeviceService.getInstance().ls.addLogs(text: "Ошибка: Не удалось преобразовать тело объекта в Data")
+                             }
+                             
+                             if currentArray.count == 100 || index == objects.count - 1 {
+                                 dataArray.append(currentArray)
+                                 currentArray = []
+                             }}
+                         if(object.deviceType == "DoctisFetal"){
+                             if let body = object.body?.data(using: .utf8) {
+                                 if let title = object.title {
+                                     self.postResource(data: body, id: title)
+                                 }
+                             } else {
+                                 DeviceService.getInstance().ls.addLogs(text: "Ошибка: Не удалось преобразовать тело объекта в Data")
+                             }
                          }
                      }
                      for dataSubArray in dataArray {

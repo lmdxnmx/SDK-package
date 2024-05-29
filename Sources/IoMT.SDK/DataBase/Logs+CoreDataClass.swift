@@ -8,9 +8,7 @@
 
 import Foundation
 import CoreData
-@objc(Logs)
+
 public class Logs: NSManagedObject {
-    public override var description: String {
-         return "Logs"
-     }
+
 }

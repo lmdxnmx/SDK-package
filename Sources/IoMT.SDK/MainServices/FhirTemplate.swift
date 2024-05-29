@@ -24,4 +24,55 @@ internal class FhirTemplate{
     
         return Data(TemplateFhir.utf8)
 
-    }}
+    }
+    static public func FetalMonitor(model: String,id:UUID, serialNumber: String, startTime: Date, battLevelStart: Int, fhrData: [DoctisFetal.DataItem], tocoData: [DoctisFetal.DataItem], moveDetect: [TimeInterval]) -> Data? {
+        let uuid = id.uuidString.lowercased()
+        
+        // Преобразование массива fhrData в JSON строку
+        var fhrDataJSON = "["
+        for (index, item) in fhrData.enumerated() {
+            fhrDataJSON += "{\"key\": \(item.key), \"value\": \(item.value)}"
+            if index != fhrData.count - 1 {
+                fhrDataJSON += ","
+            }
+        }
+        fhrDataJSON += "]"
+        
+        // Преобразование массива tocoData в JSON строку
+        var tocoDataJSON = "["
+        for (index, item) in tocoData.enumerated() {
+            tocoDataJSON += "{\"key\": \(item.key), \"value\": \(item.value)}"
+            if index != tocoData.count - 1 {
+                tocoDataJSON += ","
+            }
+        }
+        tocoDataJSON += "]"
+        
+        // Преобразование массива moveDetect в JSON строку
+        var moveDetectJSON = "["
+        for (index, item) in moveDetect.enumerated() {
+            moveDetectJSON += "\"\(item)\""
+            if index != moveDetect.count - 1 {
+                moveDetectJSON += ","
+            }
+        }
+        moveDetectJSON += "]"
+        
+        // Создание JSON строки вручную
+        let TemplateFhir: String = """
+        {
+            "id": "\(uuid)",
+            "model": "\(model)",
+            "serialNumber": "\(serialNumber)",
+            "startTime": "\(DoctisFetal.FormatPlatformTime.string(from: startTime))",
+            "finishTime": "\(DoctisFetal.FormatPlatformTime.string(from: Date()))",
+            "battLevelStart": \(battLevelStart),
+            "fhrData": \(fhrDataJSON),
+            "tocoData": \(tocoDataJSON),
+            "moveDetect": \(moveDetectJSON)
+        }
+        """
+        
+        return Data(TemplateFhir.utf8)
+    }
+}

@@ -59,7 +59,14 @@ internal class BLEManager: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
         }
         return sharedBLEManager!
     }
-    
+    func subscribeToCharacteristic(peripheral: CBPeripheral, characteristic: CBCharacteristic) {
+           // Подписываемся на уведомления об изменении характеристики
+           peripheral.setNotifyValue(true, for: characteristic)
+       }
+    // MARK: CBPeripheralDelegate
+        func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+                readWriteCharDelegate?.bleManagerDidUpdateValueForChar(peripheral, didUpdateValueFor:characteristic, error:error)
+        }
    // MARK: Intializing BLE CentralManager
     internal func initCentralManager(queue: DispatchQueue?, options: [String : Any]?) {
         if self.centralManager == nil {
@@ -76,6 +83,7 @@ internal class BLEManager: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
                 break
             case CBManagerState.poweredOff:
                 scaningDelegate?.scanningStatus(status:CBManagerState.poweredOff.rawValue)
+                DeviceService.getInstance().ls.addLogs(text:"poweredOff")
                 break
             case CBManagerState.resetting:
                 scaningDelegate?.scanningStatus(status:CBManagerState.resetting.rawValue)
@@ -94,6 +102,7 @@ internal class BLEManager: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
                 break
             case CBCentralManagerState.poweredOff:
                 scaningDelegate?.scanningStatus(status:CBCentralManagerState.poweredOff.rawValue)
+                DeviceService.getInstance().ls.addLogs(text:"poweredOff")
                 break
             case CBCentralManagerState.poweredOn:
                 scaningDelegate?.scanningStatus(status:CBCentralManagerState.poweredOn.rawValue)
@@ -135,10 +144,6 @@ internal class BLEManager: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     
     internal func peripheral(_ peripheral: CBPeripheral, didDiscoverDescriptorsFor characteristic: CBCharacteristic, error: Error?) {
         discoveryDelegate?.bleManagerDiscoverDescriptors(peripheral, didDiscoverDescriptorsFor: characteristic, error: error)
-    }
-    
-    internal func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        readWriteCharDelegate?.bleManagerDidUpdateValueForChar(peripheral, didUpdateValueFor: characteristic, error: error)
     }
     
     internal func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {

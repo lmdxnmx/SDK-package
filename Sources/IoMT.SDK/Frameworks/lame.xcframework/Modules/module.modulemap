@@ -1,6 +1,0 @@
-framework module lame {
-    umbrella header "/Users/nikosarev/Downloads/IoMT.SDK/Sources/IoMT.SDK/Frameworks/lame.framework/Headers/IoMT.SDK.h"
-  export *
-
-  module * { export * }
-}

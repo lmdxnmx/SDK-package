@@ -17,6 +17,7 @@ extension Entity {
     }
 
     @NSManaged public var body: String?
+    @NSManaged public var deviceType: String?
     @NSManaged public var title: UUID?
 
 }
