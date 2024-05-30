@@ -1,11 +1,10 @@
- module Decoder {
-    umbrella header "./include/Decoder.h"
+module Decoder {
+    umbrella header "include/Decoder.h"
+
     link "lame"
-
     link "LKCDecodeHeart"
-
     link "LKCPlayManager"
+    link "LMTPDecoder"
 
-    link "libLMTPDecoder"
     export *
 }

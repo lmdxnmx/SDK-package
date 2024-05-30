@@ -24,7 +24,7 @@ let package = Package(
             ],
             linkerSettings: [
                 .linkedLibrary("c++"),
-                .unsafeFlags(["-L", "Sources/Decoder", "-llibLMTPDecoder"])
+                .linkedLibrary("LMTPDecoder"),
             ]
         ),
         .target(
