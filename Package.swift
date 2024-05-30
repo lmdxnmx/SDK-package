@@ -24,7 +24,7 @@ let package = Package(
             ],
             linkerSettings: [
                 .linkedLibrary("c++"),
-                .unsafeFlags(["-L", "Sources/Decoder", "-lLKCPlayManager", "-lLMTPDecoder", "-llame"])
+                .unsafeFlags(["-L", "Sources/Decoder", "-lLMTPDecoder", "-llame"])
             ]
         ),
         .target(
