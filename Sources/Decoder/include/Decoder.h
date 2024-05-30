@@ -7,9 +7,9 @@
 
 #ifndef Decoder_h
 #define Decoder_h
-#import "lame.h"
-#import "LKCDecodeHeart.h"
-#import "LKCPlayManager.h"
-#import "LMTPDecoder.h"
+#include "lame.h"
+#include "LKCDecodeHeart.h"
+#include "LKCPlayManager.h"
+#include "LMTPDecoder.h"
 
 #endif /* Header_h */
