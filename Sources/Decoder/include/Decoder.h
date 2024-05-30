@@ -8,8 +8,8 @@
 #ifndef Decoder_h
 #define Decoder_h
 
-#include "lame.h"
-#include "LKCDecodeHeart.h"
-#include "LKCPlayManager.h"
-#include "LMTPDecoder.h"
+#include "../lame.h"
+#include "../LKCDecodeHeart.h"
+#include "../LKCPlayManager.h"
+#include "../LMTPDecoder.h"
 #endif /* IoMT_SDK_umbrella_h */

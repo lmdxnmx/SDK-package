@@ -1,28 +1,41 @@
 // swift-tools-version: 5.7
-// The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
     name: "IoMT.SDK",
     products: [
-        // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "IoMT.SDK",
-            targets: ["IoMT.SDK"]),
+            targets: ["IoMT.SDK"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/ashleymills/Reachability.swift.git", from: "5.0.0"),
     ],
     targets: [
-        .systemLibrary(name: "Decoder", path: "Sources/Decoder"),
+        .target(
+            name: "Decoder",
+            path: "Sources/Decoder",
+            publicHeadersPath: "include",
+            cSettings: [
+                .headerSearchPath("include"),
+                .define("USE_DECODER")
+            ],
+            linkerSettings: [
+                .linkedLibrary("c++"),
+                .unsafeFlags(["-L", "Sources/Decoder", "-lLKCPlayManager", "-lLMTPDecoder", "-llame"])
+            ]
+        ),
         .target(
             name: "IoMT.SDK",
-            dependencies: [.product(name: "Reachability", package: "Reachability.swift"),"Decoder"],
+            dependencies: [
+                .product(name: "Reachability", package: "Reachability.swift"),
+                "Decoder"
+            ],
             resources: [
-                           .process("Resources")
-                       ]
+                .process("Resources")
+            ]
         ),
-  
     ]
 )
