@@ -7,4 +7,5 @@
     link "LKCPlayManager"
 
     link "LMTPDecoder"
+    export *
 }
