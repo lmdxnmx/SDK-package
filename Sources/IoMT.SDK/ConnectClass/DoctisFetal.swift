@@ -55,6 +55,7 @@ public class DoctisFetal:
     
     internal var internetManager: InternetManager = InternetManager.getManager()
     var decoder = LMTPDecoder()
+    var lkc = LKCPlayManager()
     var disconnectTimer: Timer? = nil
     internal static let FormatPlatformTime: ISO8601DateFormatter = {
         let dateFormatter = ISO8601DateFormatter()
