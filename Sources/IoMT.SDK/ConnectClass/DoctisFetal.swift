@@ -9,6 +9,7 @@ import Foundation
 import CoreBluetooth
 import CommonCrypto
 import Decoder
+
 extension Int{
     var doubleValue: Double{
         return(Double(self))

@@ -15,10 +15,7 @@ let package = Package(
         .package(url: "https://github.com/ashleymills/Reachability.swift.git", from: "5.0.0"),
     ],
     targets: [
-        .target(
-            name:"Decoder",
-            publicHeadersPath: "include"
-        ),
+        .systemLibrary(name: "Decoder", path: "Sources/Decoder"),
         .target(
             name: "IoMT.SDK",
             dependencies: [.product(name: "Reachability", package: "Reachability.swift"),"Decoder"],

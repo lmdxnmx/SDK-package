@@ -1,0 +1,10 @@
+ module Decoder {
+    umbrella header "./include/Decoder.h"
+    link "lame"
+
+    link "LKCDecodeHeart"
+
+    link "LKCPlayManager"
+
+    link "LMTPDecoder"
+}
