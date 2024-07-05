@@ -175,7 +175,6 @@ callback?.onExpection(mac: _identifer!, ex: error!)
     internal func bleManagerDidConnect(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         rightDisconnect = false
         reconnectingState = false
- 
         manager.discoveryDelegate = self
         manager.readWriteCharDelegate = self
         callback?.onStatusDevice(mac: _identifer!, status: BluetoothStatus.ConnectStart)
