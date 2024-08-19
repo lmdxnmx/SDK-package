@@ -1,21 +1,23 @@
+// CoreDataStack.swift
+// MedicalApp
 //
-//  CoreDataStack.swift
-//  MedicalApp
+// Created by Никита on 08.02.2024.
 //
-//  Created by Никита on 08.02.2024.
-//
+
 import CoreData
 import Foundation
+
 class PersistentContainer: NSPersistentContainer { }
+
 class CoreDataStack {
     
     // Создание shared экземпляра для использования во всем приложении
     static let shared = CoreDataStack()
-   
+    
     // Ленивая инициализация persistentContainer
     lazy var persistentContainer: PersistentContainer = {
         // Создание NSPersistentContainer с именем вашей модели данных
-        let container = PersistentContainer(name: "Observation-2")
+        let container = PersistentContainer(name: "Observation-2", managedObjectModel: self.managedObjectModel)
         
         // Загрузка persistent store для данного контейнера
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
@@ -48,4 +50,9 @@ class CoreDataStack {
         }
     }
     
+    // Метод для загрузки модели из Bundle.module
+    private var managedObjectModel: NSManagedObjectModel = {
+        let modelURL = Bundle.module.url(forResource: "Observation-2", withExtension: "momd")!
+        return NSManagedObjectModel(contentsOf: modelURL)!
+    }()
 }
