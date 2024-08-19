@@ -24,7 +24,7 @@ let package = Package(
             ],
             linkerSettings: [
                 .linkedLibrary("c++"),
-          
+                .linkedLibrary("libLMTPDecoder"),
             ]
         ),
         .target(
