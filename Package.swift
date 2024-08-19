@@ -21,10 +21,6 @@ let package = Package(
             cSettings: [
                 .headerSearchPath("include"),
                 .define("USE_DECODER")
-            ],
-            linkerSettings: [
-                .linkedLibrary("c++"),
-                .linkedLibrary("libLMTPDecoder"),
             ]
         ),
         .target(
