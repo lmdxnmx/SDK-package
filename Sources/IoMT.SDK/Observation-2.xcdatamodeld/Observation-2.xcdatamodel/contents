@@ -5,7 +5,7 @@
         <attribute name="deviceType" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
     </entity>
-    <entity name="Logs" representedClassName=".Logs" syncable="YES" codeGenerationType="class">
+    <entity name="Logs" representedClassName="Logs" syncable="YES" codeGenerationType="class">
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="log" optional="YES" attributeType="String"/>
