@@ -54,7 +54,7 @@ public class DoctisFetal:
     internal var txCharacteistic: CBCharacteristic?
     
     internal var internetManager: InternetManager = InternetManager.getManager()
-   // var decoder = LMTPDecoder()
+    var decoder = LMTPDecoder()
     var disconnectTimer: Timer? = nil
     internal static let FormatPlatformTime: ISO8601DateFormatter = {
         let dateFormatter = ISO8601DateFormatter()
@@ -180,9 +180,9 @@ callback?.onExpection(mac: _identifer!, ex: error!)
         callback?.onStatusDevice(mac: _identifer!, status: BluetoothStatus.ConnectStart)
         peripheral.discoverServices(nil)
         self.peripheral = peripheral
-     //   decoder.startRealTimeAudioPlyer()
+        decoder.startRealTimeAudioPlyer()
         if(serial == "" && battLevel == -1){
-       //     decoder.startMonitor(withAudioFilePath: getDocumentsDirectory().appendingPathComponent(id.uuidString).path + ".mp3")
+            decoder.startMonitor(withAudioFilePath: getDocumentsDirectory().appendingPathComponent(id.uuidString).path + ".mp3")
         }
     }
     // This method will be triggered once device will be disconnected.
@@ -249,23 +249,23 @@ callback?.onExpection(mac: _identifer!, ex: error!)
                     finishMeasurments()
                 }
             }
-//            if let decodedValue = decoder.start(withCharacterData: value) {
-//                if(DoctisFetal.test == true && stopwatch.elapsedTimeInSeconds() > 10){
-//                    finishMeasurments()
-//                }
-//                if(decodedValue.rate > 0){
-//                    rateArray.append(DataItem(key:stopwatch.elapsedTimeInSeconds(),value:decodedValue.rate))
-//                    callback?.onExploreDevice(mac: _identifer!, atr: Atributes.HeartRate, value: decodedValue.rate)
-//                }
-//                if(battLevel == -1){
-//                    battLevel = decodedValue.battValue
-//                    callback?.onExploreDevice(mac: _identifer!, atr: Atributes.BatteryLevel, value: decodedValue.battValue)
-//                }
-//                tocoArray.append(DataItem(key:stopwatch.elapsedTimeInSeconds(),value: decodedValue.tocoValue))
-//                callback?.onExploreDevice(mac: _identifer!, atr: Atributes.Toco, value: decodedValue.tocoValue)
-//            } else {
+            if let decodedValue = decoder.start(withCharacterData: value) {
+                if(DoctisFetal.test == true && stopwatch.elapsedTimeInSeconds() > 10){
+                    finishMeasurments()
+                }
+                if(decodedValue.rate > 0){
+                    rateArray.append(DataItem(key:stopwatch.elapsedTimeInSeconds(),value:decodedValue.rate))
+                    callback?.onExploreDevice(mac: _identifer!, atr: Atributes.HeartRate, value: decodedValue.rate)
+                }
+                if(battLevel == -1){
+                    battLevel = decodedValue.battValue
+                    callback?.onExploreDevice(mac: _identifer!, atr: Atributes.BatteryLevel, value: decodedValue.battValue)
+                }
+                tocoArray.append(DataItem(key:stopwatch.elapsedTimeInSeconds(),value: decodedValue.tocoValue))
+                callback?.onExploreDevice(mac: _identifer!, atr: Atributes.Toco, value: decodedValue.tocoValue)
+            } else {
               
-    //        }
+            }
         } else {
             print("Characteristic value is nil")
         }
@@ -381,8 +381,8 @@ callback?.onExpection(mac: _identifer!, ex: error!)
             DoctisFetal.activeExecute = false
             rightDisconnect = true
             reconnectingState = false
-           // decoder.stopRealTimeAudioPlyer()
-           // decoder.stopMoniter()
+            decoder.stopRealTimeAudioPlyer()
+            decoder.stopMoniter()
             DoctisFetal.activeExecute = false
             let sum = tocoArray.reduce(0) { $0 + $1.value }
             let average: Double
@@ -428,8 +428,8 @@ callback?.onExpection(mac: _identifer!, ex: error!)
                 centralManager.cancelPeripheralConnection(peripheral)
             }
         }
-       // decoder.stopRealTimeAudioPlyer()
-      //  decoder.stopMoniter()
+        decoder.stopRealTimeAudioPlyer()
+        decoder.stopMoniter()
         DoctisFetal.activeExecute = false
         rightDisconnect = true
         reconnectingState = false
