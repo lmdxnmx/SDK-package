@@ -13,20 +13,21 @@ class CoreDataStack {
     static let shared = CoreDataStack()
    
     // Ленивая инициализация persistentContainer
-    lazy var persistentContainer: PersistentContainer = {
-        // Создание NSPersistentContainer с именем вашей модели данных
-        let container = PersistentContainer(name: "Observation-2")
-        
-        // Загрузка persistent store для данного контейнера
-        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+    lazy var persistentContainer: NSPersistentContainer = {
+        guard let modelURL = Bundle.module.url(forResource: "Observation-2", withExtension: "momd"),
+              let managedObjectModel = NSManagedObjectModel(contentsOf: modelURL) else {
+            fatalError("Не удалось найти модель данных в пакете.")
+        }
+
+        let container = NSPersistentContainer(name: "Observation-2", managedObjectModel: managedObjectModel)
+        container.loadPersistentStores { storeDescription, error in
             if let error = error as NSError? {
-                // Обработка ошибок загрузки persistent store
-                fatalError("Не удалось загрузить Persistent Store: \(error), \(error.userInfo)")
+                fatalError("Ошибка при загрузке хранилища: \(error), \(error.userInfo)")
             }
-        })
-        
+        }
         return container
     }()
+
     
     // Контекст для работы с данными в основной очереди
     var viewContext: NSManagedObjectContext {
