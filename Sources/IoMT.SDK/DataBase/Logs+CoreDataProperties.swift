@@ -15,10 +15,10 @@ extension Logs {
     @nonobjc public class func fetchRequest() -> NSFetchRequest<Logs> {
         return NSFetchRequest<Logs>(entityName: "Logs")
     }
-
-    @NSManaged public var log: String?
-    @NSManaged public var id: UUID?
     @NSManaged public var date: Date?
+    @NSManaged public var id: UUID?
+    @NSManaged public var log: String?
+    
 
 }
 

@@ -12,21 +12,33 @@ class CoreDataStack {
     // Создание shared экземпляра для использования во всем приложении
     static let shared = CoreDataStack()
    
-    // Ленивая инициализация persistentContainer
-    lazy var persistentContainer: NSPersistentContainer = {
-        guard let modelURL = Bundle.module.url(forResource: "Observation-2", withExtension: "momd"),
-              let managedObjectModel = NSManagedObjectModel(contentsOf: modelURL) else {
-            fatalError("Не удалось найти модель данных в пакете.")
-        }
+    // Создание подкласса NSPersistentContainer
+    open class PersistentContainer: NSPersistentContainer { }
 
-        let container = NSPersistentContainer(name: "Observation-2", managedObjectModel: managedObjectModel)
-        container.loadPersistentStores { storeDescription, error in
-            if let error = error as NSError? {
-                fatalError("Ошибка при загрузке хранилища: \(error), \(error.userInfo)")
-            }
+    lazy public var persistentContainer: PersistentContainer! = {
+        // Попытка получить URL модели данных в пакете
+        guard let modelURL = Bundle.module.url(forResource: "Observation-2", withExtension: "momd") else {
+            return nil
         }
+        
+        // Загрузка модели данных из указанного URL
+        guard let model = NSManagedObjectModel(contentsOf: modelURL) else {
+            return nil
+        }
+        
+        // Инициализация контейнера с именем и моделью данных
+        let container = PersistentContainer(name: "Observation-2", managedObjectModel: model)
+        
+        // Загрузка персистентного хранилища
+        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+            if let error = error as NSError? {
+                print("Ошибка при загрузке персистентного хранилища: \(error), \(error.userInfo)")
+            }
+        })
+        
         return container
     }()
+
 
     
     // Контекст для работы с данными в основной очереди
