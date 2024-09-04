@@ -123,7 +123,15 @@ public class DoctisFetal:
         manager.stopScan()
         callback?.searchedDevices(peripherals: peripherals)
     }
-
+    public func searchByCBUUID(uid:CBUUID,timeout: UInt32) {
+        manager.scaningDelegate = self
+        manager.scanDevice(serviceUUIDs: [uid], options:["":""] )
+        print("START SEARCH")
+        print(DoctisFetal.activeExecute)
+        sleep(timeout)
+        manager.stopScan()
+        callback?.searchedDevices(peripherals: peripherals)
+    }
     //DeviceScaningDelegate
     internal func scanningStatus(status: Int) {
         DeviceService.getInstance().ls.addLogs(text:String(describing:status))

@@ -250,6 +250,12 @@ public class DeviceService {
             connectClass.search(timeout: timeOut)
         }
     }
+    public func searchByCBUUID(uid:CBUUID, timeOut: UInt32){
+        DispatchQueue.global().async {
+            DoctisFetal.shared.callback = self._callback
+            DoctisFetal.shared.searchByCBUUID(uid: uid, timeout: timeOut)
+        }
+    }
     
     public func applyObservation(connectClass: ConnectClass, serial: String, model: String, time: Date, value: Double) {
         guard let instanceDS = instanceDS else { return }
