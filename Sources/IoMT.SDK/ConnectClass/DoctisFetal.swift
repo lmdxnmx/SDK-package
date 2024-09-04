@@ -134,7 +134,6 @@ public class DoctisFetal:
     }
     //DeviceScaningDelegate
     internal func scanningStatus(status: Int) {
-        DeviceService.getInstance().ls.addLogs(text:String(describing:status))
         if(status == 4){
             rightDisconnect = false
             DoctisFetal.activeExecute = false
@@ -221,7 +220,7 @@ callback?.onExpection(mac: _identifer!, ex: error!)
     battLevel = -1
     rateArray.removeAll()
     tocoArray.removeAll()
-    stopwatch.stop()
+    stopwatch.reset()
     id = UUID()
     peripheral = nil
     rightDisconnect = false
@@ -447,6 +446,9 @@ callback?.onExpection(mac: _identifer!, ex: error!)
         if let peripheral = self.peripheral{  manager.disconnectPeripheralDevice(peripheral: peripheral)
             if let centralManager = manager.centralManager {
                 centralManager.cancelPeripheralConnection(peripheral)
+                rightDisconnect = true
+                decoder.stopRealTimeAudioPlyer()
+                stopwatch.pause()
             }
         }
     }
