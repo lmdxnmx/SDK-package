@@ -23,6 +23,7 @@ public protocol DeviceCallback: AnyObject {
     func findDevice(peripheral: DisplayPeripheral);
     ///Функция вызывающаяся после окончания поиска, возвращает все найденные устройства
     func searchedDevices(peripherals: [DisplayPeripheral]);
+    func internetStatus(status:String)
 }
 
 

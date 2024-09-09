@@ -23,6 +23,7 @@ fileprivate class _baseCallback: DeviceCallback {
     func findDevice(peripheral: DisplayPeripheral){}
     
     func searchedDevices(peripherals: [DisplayPeripheral]){}
+    func internetStatus(status: String) {}
 }
 
 private var instanceDS: DeviceService? = nil
@@ -63,7 +64,7 @@ public class DeviceService {
         BLEManager.getSharedBLEManager().initCentralManager(queue: DispatchQueue.global(), options: nil)
         ls = LogService()
         im = InternetManager(login: _login, password: _password, debug: _test, callback: _callback)
-        rm = ReachabilityManager(manager:im)
+        rm = ReachabilityManager(manager:im,callback: _callback)
         instanceDS = self
     }
     
@@ -75,7 +76,7 @@ public class DeviceService {
         _callback = callbackFunction ?? _baseCallback()
         _test = debug
         im = InternetManager(login: _login, password: _password, debug: _test, callback: _callback)
-        rm = ReachabilityManager(manager: im)
+        rm = ReachabilityManager(manager: im, callback:_callback)
         ls = LogService()
         let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .medium)
         let logs = """
@@ -95,7 +96,7 @@ public class DeviceService {
         _login = login
         _password = password
         im = InternetManager(login: _login, password: _password, debug: _test, callback: _callback)
-        rm = ReachabilityManager(manager:im)
+        rm = ReachabilityManager(manager:im,callback:_callback)
         instanceDS = self
     }
     

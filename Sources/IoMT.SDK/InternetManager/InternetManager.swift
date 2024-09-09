@@ -17,6 +17,7 @@ fileprivate class _baseCallback: DeviceCallback {
     func findDevice(peripheral: DisplayPeripheral){}
     
     func searchedDevices(peripherals: [DisplayPeripheral]){}
+    func internetStatus(status: String) {}
 }
 
 

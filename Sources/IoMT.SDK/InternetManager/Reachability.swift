@@ -5,11 +5,13 @@ class ReachabilityManager {
     
     let reachability: Reachability
     var im:InternetManager
-    internal init(manager:InternetManager) {
+    var _callback:DeviceCallback
+    internal init(manager:InternetManager,callback:DeviceCallback) {
         // Инициализируем Reachability
         guard let reachability = try? Reachability() else {
             fatalError("Unable to create Reachability")
         }
+        self._callback = callback
         self.reachability = reachability
         im = manager
         startMonitoring()
@@ -43,15 +45,18 @@ class ReachabilityManager {
         switch reachability.connection {
         case .none:
             DeviceService.getInstance().ls.addLogs(text:"Network unreachable")
+            _callback.internetStatus(status: "Network unreachable")
         case .wifi:
             DeviceService.getInstance().ls.addLogs(text:"Wifi enable")
-            
+            _callback.internetStatus(status: "Wifi enable")
             self.im.dropTimer()
         case .cellular:
             DeviceService.getInstance().ls.addLogs(text:"Network reachable via cellular data")
+            _callback.internetStatus(status: "Network reachable via cellular data")
             self.im.dropTimer()
         default:
             DeviceService.getInstance().ls.addLogs(text:"Unknown network status")
+            _callback.internetStatus(status: "Unknown network status")
         }
     }
 }
