@@ -433,14 +433,14 @@ public class DeviceService {
     public func toTest() {
         _test = true
         im = InternetManager(login: _login, password: _password, debug: _test, callback: _callback)
-        rm = ReachabilityManager(manager:im)
+        rm = ReachabilityManager(manager:im, callback:_callback)
         instanceDS = self
     }
     ///Отправка данных будет производиться на основную площадку <ppma.ru>
     public func toProd() {
         _test = false
         im = InternetManager(login: _login, password: _password, debug: _test, callback: _callback)
-        rm = ReachabilityManager(manager:im)
+        rm = ReachabilityManager(manager:im, callback: _callback)
         instanceDS = self
     }
     public func getCountOfEntities() -> Int {
